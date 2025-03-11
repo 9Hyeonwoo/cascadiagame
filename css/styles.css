@@ -331,6 +331,16 @@ ion-icon[name="help-circle-outline"] {
     padding: 0px 30px;
 }
 
+#typeSettingModal .modal-content {
+	width: 460px;
+}
+
+#typeSettingModal .modal-content .notification #setGoal {
+    margin: 10px auto 20px;
+    display: block;
+    padding: 0px 30px;
+}
+
 #natureCubesPlaceTileModal .modal-content, #natureCubesPlaceTokenModal .modal-content {
 	width: 280px;
 }

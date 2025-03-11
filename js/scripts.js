@@ -124,6 +124,16 @@ var currentView = 'desktop';
 
 var rulesURL = 'https://drive.google.com/file/d/1fY8-__M2f0QSxvBi0P2oycG6F0l1yJiI/view';
 
+const GoalType = {
+	A: "a",
+	B: "b",
+	C: "c",
+	D: "d",
+	E: "e",
+};
+
+var goalType = GoalType.A;
+
 $(window).resize(function() {
 	checkScreenWidth();
 });
@@ -418,6 +428,14 @@ $(document).on(touchEvent,'#startGame',function(){
 });
 
 $(document).on(touchEvent,'#commenceGame',function(){
+	$('#typeSettingModal').addClass('is-active');
+});
+
+$(document).on(touchEvent,'#setGoal',function(){
+	selectedType = $(this).attr('type')
+	if (selectedType) {
+		goalType = selectedType
+	}
 	$('body').addClass('gameView');
 	$('.layer').hide();
 	$('#gameLayer').show();
