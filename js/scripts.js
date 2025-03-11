@@ -134,6 +134,43 @@ const GoalType = {
 
 var goalType = GoalType.A;
 
+var goalPictures = {
+	"bear" : {
+		"a" : "img/scoring-goals/bear-large.jpg",
+		"b" : "img/scoring-goals/type-b/bear-large.jpg",
+		"c" : "img/scoring-goals/type-c/bear-large.jpg",
+		"d" : "img/scoring-goals/type-d/bear-large.jpg",
+		"e" : "img/scoring-goals/type-e/bear-large.jpg",
+	},
+	"elk" : {
+		"a" : "img/scoring-goals/elk-large.jpg",
+		"b" : "img/scoring-goals/type-b/elk-large.jpg",
+		"c" : "img/scoring-goals/type-c/elk-large.jpg",
+		"d" : "img/scoring-goals/type-d/elk-large.jpg",
+		"e" : "img/scoring-goals/type-e/elk-large.jpg",
+	},
+	"salmon" : {
+		"a" : "img/scoring-goals/salmon-large.jpg",
+		"b" : "img/scoring-goals/type-b/salmon-large.jpg",
+		"c" : "img/scoring-goals/type-c/salmon-large.jpg",
+		"d" : "img/scoring-goals/type-d/salmon-large.jpg",
+		"e" : "img/scoring-goals/type-e/salmon-large.jpg",
+	},
+	"fox" : {
+		"a" : "img/scoring-goals/fox-large.jpg",
+		"b" : "img/scoring-goals/type-b/fox-large.jpg",
+		"c" : "img/scoring-goals/type-c/fox-large.jpg",
+		"d" : "img/scoring-goals/type-d/fox-large.jpg",
+		"e" : "img/scoring-goals/type-e/fox-large.jpg",
+	},
+	"hawk" : {
+		"a" : "img/scoring-goals/hawk-large.jpg",
+		"b" : "img/scoring-goals/type-b/hawk-large.jpg",
+		"c" : "img/scoring-goals/type-c/hawk-large.jpg",
+		"d" : "img/scoring-goals/type-d/hawk-large.jpg",
+		"e" : "img/scoring-goals/type-e/hawk-large.jpg",
+	},
+}
 $(window).resize(function() {
 	checkScreenWidth();
 });
@@ -322,6 +359,15 @@ function updateMapPosition(moveDirection) {
 	}
 }
 
+function updateGoalPictures(goalType) {
+	for (let i = 0; i < wildlife.length; i++) {
+		wildType = wildlife[i]
+		$(`#${wildType}ScoringModal .goalScoringModalImg`).attr("src", goalPictures[wildType][goalType])
+		$(`#quickViewMobileGoalFullImages #quickViewGoalImg-${wildType}`).attr("src", goalPictures[wildType][goalType])
+		$(`.goalLayerScoring-${wildType}`).attr("src", goalPictures[wildType][goalType])
+	}
+}
+
 $(document).on(touchEvent,'#showWildlifeGoals',function(){
 
 	if(currentView == 'mobile') {
@@ -340,17 +386,6 @@ $(document).on(touchEvent,'#hideWildlifeGoals',function(){
 	}
 	$('#gameLayer #goalLayerListContainer').hide();
 });
-
-
-$(document).on(touchEvent,'#hideWildlifeGoals',function(){
-	if(currentView == 'mobile') {
-		$('.hideWhenShowingGoalsMobile').show();
-	} else if(currentView == 'tablet') {
-		$('.hideWhenShowingGoalsTablet').show();
-	}
-	$('#gameLayer #goalLayerListContainer').hide();
-});
-
 
 $(document).on(touchEvent,'#mobileGoalThumbnails .mobileThumbnail',function(){
 	$('.mobileThumbnailActiveFrame').remove();
@@ -435,6 +470,7 @@ $(document).on(touchEvent,'#setGoal',function(){
 	selectedType = $(this).attr('type')
 	if (selectedType) {
 		goalType = selectedType
+		updateGoalPictures(goalType)
 	}
 	$('body').addClass('gameView');
 	$('.layer').hide();
