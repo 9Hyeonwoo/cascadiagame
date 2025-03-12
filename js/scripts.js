@@ -3323,7 +3323,17 @@ function setupFinalScoring() {
 	checkForBlanks();
 	processPlacedTilesAndTokens();
 
-	calculateBearTokenScoring();
+	switch (goalType) {
+		case GoalType.A: 
+			calculateBearTokenScoring();
+			break;
+		case GoalType.B:
+			calculateBearTokenScoringB();
+			break;
+		default:
+			calculateBearTokenScoring();
+			break;
+	}
 	calculateElkTokenScoring();
 	calculateFoxTokenScoring();
 	calculateHawkTokenScoring();
@@ -3721,6 +3731,51 @@ function calculateBearTokenScoring() {
 		tokenScoring.bear.totalScore = bearScoringValues[confirmedBearPairs];
 	}
 
+}
+
+function calculateBearTokenScoringB() {
+    let confirmedBearGroups = 0;
+    let usedTokenIDs = [];
+    let threeBearGroups = [];
+
+    const tokenIDs = Object.keys(allPlacedTokens);
+
+    for (const tokenID of tokenIDs) {
+        if (allPlacedTokens[tokenID] !== 'bear' || usedTokenIDs.includes(tokenID)) continue;
+
+        let potentialTokenIDs = [tokenID];
+        let queue = [tokenID];
+
+        while (queue.length > 0) {
+            let currentToken = queue.shift();
+            let neighbourTiles = neighbourTileIDs(currentToken);
+
+            for (let i = 0; i < neighbourTiles.length; i++) {
+                let neighbourID = neighbourTiles[i];
+
+                if (
+                    allPlacedTokens.hasOwnProperty(neighbourID) &&
+                    allPlacedTokens[neighbourID] === 'bear' &&
+                    !potentialTokenIDs.includes(neighbourID)
+                ) {
+                    potentialTokenIDs.push(neighbourID);
+                    queue.push(neighbourID);
+                }
+            }
+        }
+
+        if (potentialTokenIDs.length === 3) {
+            confirmedBearGroups++;
+            threeBearGroups.push([...potentialTokenIDs]);
+            usedTokenIDs.push(...potentialTokenIDs);
+        }
+    }
+
+	if(confirmedBearGroups != 0) {
+		tokenScoring.bear.totalScore = confirmedBearGroups * 10;
+	}
+    console.log("Three-bear groups:", threeBearGroups);
+    console.log("Total confirmed groups of 3 bears:", confirmedBearGroups);
 }
 
 let allElkTokens = [];
