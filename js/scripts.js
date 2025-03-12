@@ -3334,6 +3334,7 @@ function setupFinalScoring() {
 			break;
 		case GoalType.C:
 			calculateBearTokenScoringC();
+			calculateElkTokenScoringC();
 			break;
 		case GoalType.D:
 			calculateBearTokenScoringD();
@@ -4342,6 +4343,68 @@ function calculateElkTokenScoringB() {
         }
     }
 
+
+	tokenScoring.elk.totalScore = totalScore;
+
+    console.log("Elk formations found:", elkFormationCounts);
+    console.log("Total elk formation score:", totalScore);
+}
+
+function calculateElkTokenScoringC() {
+	let usedTokenIDs = [];
+    let elkFormationCounts = { 
+		1: 0, 
+		2: 0, 
+		3: 0, 
+		4: 0,
+		5: 0,
+		6: 0,
+		7: 0,
+		8: 0
+	};
+    let elkScoringValues = { 
+		1: 2, 
+		2: 4, 
+		3: 7, 
+		4: 10,
+		5: 14, 
+		6: 18, 
+		7: 23, 
+		8: 28, 
+	};
+    let totalScore = 0;
+
+    const tokenIDs = Object.keys(allPlacedTokens);
+
+    for (const tokenID of tokenIDs) {
+        if (allPlacedTokens[tokenID] !== 'elk' || usedTokenIDs.includes(tokenID)) continue;
+
+        let potentialTokenIDs = [tokenID];
+        let queue = [tokenID];
+
+        while (queue.length > 0) {
+            let currentToken = queue.shift();
+            let neighbourTiles = neighbourTileIDs(currentToken);
+
+            for (let i = 0; i < neighbourTiles.length; i++) {
+                let neighbourID = neighbourTiles[i];
+
+                if (
+                    allPlacedTokens.hasOwnProperty(neighbourID) &&
+                    allPlacedTokens[neighbourID] === 'elk' &&
+                    !potentialTokenIDs.includes(neighbourID)
+                ) {
+                    potentialTokenIDs.push(neighbourID);
+                    queue.push(neighbourID);
+                }
+            }
+        }
+
+		scoringLength = Math.min(potentialTokenIDs.length, 8);
+		elkFormationCounts[scoringLength]++;
+		totalScore += elkScoringValues[scoringLength]
+        usedTokenIDs.push(...potentialTokenIDs);
+    }
 
 	tokenScoring.elk.totalScore = totalScore;
 
