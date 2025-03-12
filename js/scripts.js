@@ -3336,6 +3336,9 @@ function setupFinalScoring() {
 		case GoalType.D:
 			calculateBearTokenScoringD();
 			break;
+		case GoalType.E:
+			calculateBearTokenScoringE();
+			break;
 		default:
 			calculateBearTokenScoring();
 			break;
@@ -3881,6 +3884,62 @@ function calculateBearTokenScoringD() {
             usedTokenIDs.push(...potentialTokenIDs);
         }
     }
+
+	tokenScoring.bear.totalScore = totalScore;
+    console.log("Group counts:", groupCounts);
+    console.log("Total score:", totalScore);
+}
+
+function calculateBearTokenScoringE() {
+    let usedTokenIDs = [];
+    let groupCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    let groupScores = { 
+		1: 2, 
+		2: 5, 
+		3: 9,
+		4: 13
+	};
+    let totalScore = 0;
+
+    const tokenIDs = Object.keys(allPlacedTokens);
+
+    for (const tokenID of tokenIDs) {
+        if (allPlacedTokens[tokenID] !== 'bear' || usedTokenIDs.includes(tokenID)) continue;
+
+        let potentialTokenIDs = [tokenID];
+        let queue = [tokenID];
+
+        while (queue.length > 0) {
+            let currentToken = queue.shift();
+            let neighbourTiles = neighbourTileIDs(currentToken);
+
+            for (let i = 0; i < neighbourTiles.length; i++) {
+                let neighbourID = neighbourTiles[i];
+
+                if (
+                    allPlacedTokens.hasOwnProperty(neighbourID) &&
+                    allPlacedTokens[neighbourID] === 'bear' &&
+                    !potentialTokenIDs.includes(neighbourID)
+                ) {
+                    potentialTokenIDs.push(neighbourID);
+                    queue.push(neighbourID);
+                }
+            }
+        }
+
+        let groupSize = potentialTokenIDs.length;
+        if (groupSize >= 1 && groupSize <= 4) {
+            groupCounts[groupSize]++;
+            usedTokenIDs.push(...potentialTokenIDs);
+        }
+    }
+	
+	for (const size of Object.keys(groupScores)) {
+		let tempScore = groupCounts[size] * groupCounts[size];
+		if (tempScore > totalScore) {
+			totalScore = tempScore
+		}
+	}
 
 	tokenScoring.bear.totalScore = totalScore;
     console.log("Group counts:", groupCounts);
