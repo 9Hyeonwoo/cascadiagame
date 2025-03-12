@@ -3326,9 +3326,11 @@ function setupFinalScoring() {
 	switch (goalType) {
 		case GoalType.A: 
 			calculateBearTokenScoring();
+			calculateElkTokenScoring();
 			break;
 		case GoalType.B:
 			calculateBearTokenScoringB();
+			calculateElkTokenScoringB();
 			break;
 		case GoalType.C:
 			calculateBearTokenScoringC();
@@ -3343,7 +3345,6 @@ function setupFinalScoring() {
 			calculateBearTokenScoring();
 			break;
 	}
-	calculateElkTokenScoring();
 	calculateFoxTokenScoring();
 	calculateHawkTokenScoring();
 	calculateSalmonTokenScoring();
@@ -4313,6 +4314,97 @@ function allElkTokensInLine(startID, thisDirection) {
 function getOppositeDirection(thisDirection) {
 	let obj = arr.find(o => o.direction === thisDirection);
 	return obj.oppositeDirection;
+}
+
+function calculateElkTokenScoringB() {
+    let usedElkTokenIDs = [];
+    let elkFormationCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    let elkScoringValues = { 
+		1: 2, 
+		2: 5, 
+		3: 9, 
+		4: 13
+	};
+    let totalScore = 0;
+
+    const tokenIDs = Object.keys(allPlacedTokens);
+
+    for (const tokenID of tokenIDs) {
+        if (allPlacedTokens[tokenID] !== 'elk' || usedElkTokenIDs.includes(tokenID)) continue;
+
+        let elkGroup = findElkFormation(tokenID);
+        let groupSize = elkGroup.length;
+
+        if (groupSize >= 1 && groupSize <= 4) {
+            elkFormationCounts[groupSize]++;
+            totalScore += elkScoringValues[groupSize];
+            usedElkTokenIDs.push(...elkGroup);
+        }
+    }
+
+
+	tokenScoring.elk.totalScore = totalScore;
+
+    console.log("Elk formations found:", elkFormationCounts);
+    console.log("Total elk formation score:", totalScore);
+}
+
+function findElkFormation(startID) {
+    let queue = [startID];
+    let visited = new Set();
+    let formation = [startID];
+
+    while (queue.length > 0) {
+        let currentToken = queue.shift();
+        let neighbours = neighbourTileIDs(currentToken);
+
+        for (let neighbour of neighbours) {
+            if (
+                allPlacedTokens.hasOwnProperty(neighbour) &&
+                allPlacedTokens[neighbour] === 'elk' &&
+                !visited.has(neighbour)
+            ) {
+                visited.add(neighbour);
+                queue.push(neighbour);
+                formation.push(neighbour);
+            }
+        }
+    }
+
+    // Validate formation shape
+    if (formation.length === 1 || formation.length === 2) return formation;
+    if (formation.length === 3 && isTriangle(formation)) return formation;
+    if (formation.length === 4 && isDiamond(formation)) return formation;
+
+    return []; // Default to single elk if no valid shape is found.
+}
+
+function isTriangle(elkGroup) {
+    if (elkGroup.length !== 3) return false;
+    let [a, b, c] = elkGroup;
+    
+    return (
+        isAdjacent(a, b) &&
+        isAdjacent(b, c) &&
+        isAdjacent(a, c) // Must form a closed triangle
+    );
+}
+
+function isDiamond(elkGroup) {
+    if (elkGroup.length !== 4) return false;
+    let [a, b, c, d] = elkGroup;
+
+    return (
+        isAdjacent(a, b) &&
+        isAdjacent(b, c) &&
+        isAdjacent(c, d) &&
+        isAdjacent(d, a) // Must form a closed diamond shape
+    );
+}
+
+function isAdjacent(tileA, tileB) {
+    let neighbours = neighbourTileIDs(tileA);
+    return neighbours.includes(tileB);
 }
 
 function calculateFoxTokenScoring() {
