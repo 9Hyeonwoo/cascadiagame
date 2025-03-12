@@ -3333,6 +3333,9 @@ function setupFinalScoring() {
 		case GoalType.C:
 			calculateBearTokenScoringC();
 			break;
+		case GoalType.D:
+			calculateBearTokenScoringD();
+			break;
 		default:
 			calculateBearTokenScoring();
 			break;
@@ -3828,6 +3831,55 @@ function calculateBearTokenScoringC() {
     // Check for bonus (if we have at least one of each group size)
     if (groupCounts[1] > 0 && groupCounts[2] > 0 && groupCounts[3] > 0) {
         totalScore += 3; // Bonus points
+    }
+
+	tokenScoring.bear.totalScore = totalScore;
+    console.log("Group counts:", groupCounts);
+    console.log("Total score:", totalScore);
+}
+
+function calculateBearTokenScoringD() {
+    let usedTokenIDs = [];
+    let groupCounts = { 2: 0, 3: 0, 4: 0 };
+    let groupScores = { 
+		2: 5, 
+		3: 8, 
+		4: 13 
+	};
+    let totalScore = 0;
+
+    const tokenIDs = Object.keys(allPlacedTokens);
+
+    for (const tokenID of tokenIDs) {
+        if (allPlacedTokens[tokenID] !== 'bear' || usedTokenIDs.includes(tokenID)) continue;
+
+        let potentialTokenIDs = [tokenID];
+        let queue = [tokenID];
+
+        while (queue.length > 0) {
+            let currentToken = queue.shift();
+            let neighbourTiles = neighbourTileIDs(currentToken);
+
+            for (let i = 0; i < neighbourTiles.length; i++) {
+                let neighbourID = neighbourTiles[i];
+
+                if (
+                    allPlacedTokens.hasOwnProperty(neighbourID) &&
+                    allPlacedTokens[neighbourID] === 'bear' &&
+                    !potentialTokenIDs.includes(neighbourID)
+                ) {
+                    potentialTokenIDs.push(neighbourID);
+                    queue.push(neighbourID);
+                }
+            }
+        }
+
+        let groupSize = potentialTokenIDs.length;
+        if (groupSize >= 2 && groupSize <= 4) {
+            groupCounts[groupSize]++;
+            totalScore += groupScores[groupSize];
+            usedTokenIDs.push(...potentialTokenIDs);
+        }
     }
 
 	tokenScoring.bear.totalScore = totalScore;
