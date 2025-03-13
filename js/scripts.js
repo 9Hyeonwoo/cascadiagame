@@ -3338,12 +3338,14 @@ function setupFinalScoring() {
 			break;
 		case GoalType.D:
 			calculateBearTokenScoringD();
+			calculateElkTokenScoringD();
 			break;
 		case GoalType.E:
 			calculateBearTokenScoringE();
 			break;
 		default:
 			calculateBearTokenScoring();
+			calculateElkTokenScoring();
 			break;
 	}
 	calculateFoxTokenScoring();
@@ -4412,6 +4414,55 @@ function calculateElkTokenScoringC() {
     console.log("Total elk formation score:", totalScore);
 }
 
+function calculateElkTokenScoringD() {
+	let usedTokenIDs = [];
+    let elkScoringValues = { 
+		1: 2, 
+		2: 5, 
+		3: 8, 
+		4: 12,
+		5: 16, 
+		6: 21, 
+	};
+    let totalScore = 0;
+
+    const tokenIDs = Object.keys(allPlacedTokens);
+
+    for (const tokenID of tokenIDs) {
+        if (allPlacedTokens[tokenID] !== 'elk' || usedTokenIDs.includes(tokenID)) continue;
+
+        let potentialTokenIDs = [tokenID];
+        let queue = [tokenID];
+
+        while (queue.length > 0) {
+            let currentToken = queue.shift();
+            let neighbourTiles = neighbourTileIDs(currentToken);
+
+            for (let i = 0; i < neighbourTiles.length; i++) {
+                let neighbourID = neighbourTiles[i];
+
+                if (
+                    allPlacedTokens.hasOwnProperty(neighbourID) &&
+                    allPlacedTokens[neighbourID] === 'elk' &&
+                    !potentialTokenIDs.includes(neighbourID)
+                ) {
+                    potentialTokenIDs.push(neighbourID);
+                    queue.push(neighbourID);
+                }
+            }
+        }
+
+		if (isRing(potentialTokenIDs)) {
+			totalScore += elkScoringValues[potentialTokenIDs.length]
+		}
+        usedTokenIDs.push(...potentialTokenIDs);
+    }
+
+	tokenScoring.elk.totalScore = totalScore;
+
+    console.log("Total elk formation score:", totalScore);
+}
+
 function findElkFormation(startID) {
     let queue = [startID];
     let visited = new Set();
@@ -4463,6 +4514,32 @@ function isDiamond(elkGroup) {
         isAdjacent(c, d) &&
         isAdjacent(d, a) // Must form a closed diamond shape
     );
+}
+
+function isRing(elkGroup) {
+    if (elkGroup.length > 6) return false;
+	for (let node of elkGroup) {
+		for (let i = 0; i < directions.length; i++){
+			let queue = [node];
+    		let visited = new Set([node]);
+			let currentIndex = i
+			while (queue.length > 0) {
+        		let currentToken = queue.shift();
+				let nextToken = nextElkTokenInDirection(currentToken, directions[currentIndex]);
+				if (nextToken && !visited.has(nextToken)) {
+					queue.push(nextToken);
+					visited.add(nextToken);
+					currentIndex = (currentIndex + 1) % directions.length;
+				}
+			}
+
+			if (visited.size == elkGroup.length) {
+				return true
+			}
+		}
+	}
+
+    return false;
 }
 
 function isAdjacent(tileA, tileB) {
