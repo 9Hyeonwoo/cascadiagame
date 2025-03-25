@@ -4428,35 +4428,18 @@ function calculateElkTokenScoringD() {
 
     const tokenIDs = Object.keys(allPlacedTokens);
 
-    for (const tokenID of tokenIDs) {
-        if (allPlacedTokens[tokenID] !== 'elk' || usedTokenIDs.includes(tokenID)) continue;
+	for (let i = 6; i >= 1; i--) {
+		for (const tokenID of tokenIDs) {
+			if (allPlacedTokens[tokenID] !== 'elk' || usedTokenIDs.includes(tokenID)) continue;
 
-        let potentialTokenIDs = [tokenID];
-        let queue = [tokenID];
-
-        while (queue.length > 0) {
-            let currentToken = queue.shift();
-            let neighbourTiles = neighbourTileIDs(currentToken);
-
-            for (let i = 0; i < neighbourTiles.length; i++) {
-                let neighbourID = neighbourTiles[i];
-
-                if (
-                    allPlacedTokens.hasOwnProperty(neighbourID) &&
-                    allPlacedTokens[neighbourID] === 'elk' &&
-                    !potentialTokenIDs.includes(neighbourID)
-                ) {
-                    potentialTokenIDs.push(neighbourID);
-                    queue.push(neighbourID);
-                }
-            }
-        }
-
-		if (isRing(potentialTokenIDs)) {
-			totalScore += elkScoringValues[potentialTokenIDs.length]
+			potentialTokenIDs = findRing(tokenID)
+			
+			if (potentialTokenIDs.length >= i) {
+				totalScore += elkScoringValues[potentialTokenIDs.length]
+				usedTokenIDs.push(...potentialTokenIDs);
+			}
 		}
-        usedTokenIDs.push(...potentialTokenIDs);
-    }
+	}
 
 	tokenScoring.elk.totalScore = totalScore;
 
@@ -4540,6 +4523,29 @@ function isRing(elkGroup) {
 	}
 
     return false;
+}
+
+function findRing(node) {
+	found = [node]
+	for (let i = 0; i < directions.length; i++){
+		let queue = [node];
+   		let visited = new Set([node]);
+		let currentIndex = i
+		while (queue.length > 0) {
+       		let currentToken = queue.shift();
+			let nextToken = nextElkTokenInDirection(currentToken, directions[currentIndex]);
+			if (nextToken && !visited.has(nextToken)) {
+				queue.push(nextToken);
+				visited.add(nextToken);
+				currentIndex = (currentIndex + 1) % directions.length;
+			}
+		}
+
+		if (visited.size > found.length) {
+			found = [...visited];
+		}
+	}
+    return found;
 }
 
 function isAdjacent(tileA, tileB) {
