@@ -3342,6 +3342,7 @@ function setupFinalScoring() {
 			break;
 		case GoalType.E:
 			calculateBearTokenScoringE();
+			calculateElkTokenScoringE();
 			break;
 		default:
 			calculateBearTokenScoring();
@@ -4442,6 +4443,58 @@ function calculateElkTokenScoringD() {
 	}
 
 	tokenScoring.elk.totalScore = totalScore;
+
+    console.log("Total elk formation score:", totalScore);
+}
+
+function calculateElkTokenScoringE() {
+	let usedTokenIDs = [];
+	let elkFormationCounts = { };
+    let elkScoringValues = { 
+		1: 5, 
+		2: 12, 
+		3: 20, 
+		4: 29,
+	};
+    let totalScore = 0;
+
+    const tokenIDs = Object.keys(allPlacedTokens);
+
+	for (let i = 0; i < 3; i++) {
+		potentialFormations = {
+			"NE": [], 
+			"E": [], 
+			"SE": [], 
+		}
+    	for (let direction in potentialFormations) {
+			if (direction in elkFormationCounts) continue;
+
+			let potentialTokenIDs = [];
+    		for (const tokenID of tokenIDs) {
+        		if (allPlacedTokens[tokenID] !== 'elk' || usedTokenIDs.includes(tokenID) || potentialTokenIDs.includes(tokenID)) continue;
+
+				let pairToken = nextElkTokenInDirection(tokenID, direction);
+				if (pairToken && !usedTokenIDs.includes(pairToken) && !potentialTokenIDs.includes(pairToken)) {
+					potentialTokenIDs.push(tokenID);
+					potentialTokenIDs.push(pairToken);
+				}
+			}
+			potentialFormations[direction] = potentialTokenIDs
+		}
+
+		const maxEntry = Object.entries(potentialFormations).reduce((max, entry) =>
+			entry[1].length > max[1].length ? entry : max
+		);
+
+		if (maxEntry[1].length == 0) break;
+
+		elkFormationCounts[maxEntry[0]] = maxEntry[1];
+		let scores = elkScoringValues[Math.min(maxEntry[1].length, 4)];
+		totalScore += scores;
+		usedTokenIDs.push(...maxEntry[1]);
+	}
+
+    tokenScoring.elk.totalScore = totalScore;
 
     console.log("Total elk formation score:", totalScore);
 }
