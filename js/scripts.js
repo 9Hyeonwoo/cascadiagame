@@ -3327,10 +3327,12 @@ function setupFinalScoring() {
 		case GoalType.A: 
 			calculateBearTokenScoring();
 			calculateElkTokenScoring();
+			calculateSalmonTokenScoring();
 			break;
 		case GoalType.B:
 			calculateBearTokenScoringB();
 			calculateElkTokenScoringB();
+			calculateSalmonTokenScoringB();
 			break;
 		case GoalType.C:
 			calculateBearTokenScoringC();
@@ -3347,11 +3349,11 @@ function setupFinalScoring() {
 		default:
 			calculateBearTokenScoring();
 			calculateElkTokenScoring();
+			calculateSalmonTokenScoring();
 			break;
 	}
 	calculateFoxTokenScoring();
 	calculateHawkTokenScoring();
-	calculateSalmonTokenScoring();
 
 	const allWildlife = Object.keys(tokenScoring);
 
@@ -4782,6 +4784,93 @@ function calculateSalmonTokenScoring() {
 		let uniqueSalmonIDs = confirmedSalmonRuns[i].filter(onlyUnique);
 		let salmonInRunNum = uniqueSalmonIDs.length;
 		if(salmonInRunNum > 7) salmonInRunNum = 7;
+		tokenScoring.salmon.totalScore += salmonScoringValues[salmonInRunNum];
+	}
+}
+
+function calculateSalmonTokenScoringB() {
+
+	let salmonScoringValues = {
+		'1': 2,
+		'2': 4,
+		'3': 9,
+		'4': 11,
+		'5': 17,
+	}
+
+	const tokenIDs = Object.keys(allPlacedTokens);
+
+	let allSalmonTileIDs = [];
+
+	for (const tokenID of tokenIDs) {
+
+		if(allPlacedTokens[tokenID] == 'salmon') {
+			allSalmonTileIDs.push(tokenID);
+		}
+	}
+
+	let validSalmonTiles = []
+
+	for (let i = 0; i < allSalmonTileIDs.length; i++) {
+		let neighbouringSalmon = searchNeighbourTilesForWildlife(allSalmonTileIDs[i], 'salmon');
+		if(neighbouringSalmon.length <= 2) {
+			validSalmonTiles.push(allSalmonTileIDs[i]);
+		} else {
+			usedSalmonTokenIDs.push(allSalmonTileIDs[i]);
+		}
+	}
+
+	for (let j = 0; j < validSalmonTiles.length; j++) {
+
+		potentialSalmonTokenIDs = [];
+
+		if(usedSalmonTokenIDs.indexOf(validSalmonTiles[j]) == -1) {
+
+			let potentialNeighbourSalmon = searchNeighbourTilesForWildlife(validSalmonTiles[j], 'salmon');
+			let confirmedNeighbourSalmon = [];
+
+			for (let k = 0; k < potentialNeighbourSalmon.length; k++) {
+				if(usedSalmonTokenIDs.indexOf(potentialNeighbourSalmon[k]) == -1) {
+					confirmedNeighbourSalmon.push(potentialNeighbourSalmon[k]);
+				}
+			}
+
+			if(confirmedNeighbourSalmon.length == 2) {
+				let tilesToCheck = [validSalmonTiles[j]];
+				tilesToCheck.push(...confirmedNeighbourSalmon);
+
+				let firstNeighbourTiles = neighbourTileIDs(confirmedNeighbourSalmon[0]);
+				let secondNeighbourTiles = neighbourTileIDs(confirmedNeighbourSalmon[1]);
+
+				if(firstNeighbourTiles.indexOf(confirmedNeighbourSalmon[1]) === -1 && secondNeighbourTiles.indexOf(confirmedNeighbourSalmon[0]) === -1) {
+					// perform a run forwards and backwards!!
+					let forwardsAndBackwardsSalmonRunIDs = forwardsAndBackwardsSalmonRun(validSalmonTiles[j], confirmedNeighbourSalmon);
+
+					potentialSalmonTokenIDs.push(...forwardsAndBackwardsSalmonRunIDs);
+
+				} else {
+					// since all tokens with 3 or more neighbours have been removed - if this criteria of the loop is met it HAS to be a valid triangle formation
+					potentialSalmonTokenIDs.push(...tilesToCheck);
+					usedSalmonTokenIDs.push(...tilesToCheck);
+				}
+
+			} else if(confirmedNeighbourSalmon.length < 2) {
+				potentialSalmonTokenIDs.push(validSalmonTiles[j]);
+				let salmonRunIDs = salmonTokensInRun(validSalmonTiles[j], 'salmon');
+				potentialSalmonTokenIDs.push(...salmonRunIDs);
+
+			}
+			confirmedSalmonRuns.push(potentialSalmonTokenIDs);
+		}
+	}
+
+	confirmedSalmonRuns.sort(function (a, b) {
+		return b.length - a.length;
+	});
+
+	for (let i = 0; i < confirmedSalmonRuns.length; i++) {
+		let uniqueSalmonIDs = confirmedSalmonRuns[i].filter(onlyUnique);
+		let salmonInRunNum = Math.min(uniqueSalmonIDs.length, 5);
 		tokenScoring.salmon.totalScore += salmonScoringValues[salmonInRunNum];
 	}
 }
