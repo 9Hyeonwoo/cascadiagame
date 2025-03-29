@@ -3329,6 +3329,7 @@ function setupFinalScoring() {
 			calculateElkTokenScoring();
 			calculateSalmonTokenScoring();
 			calculateFoxTokenScoring();
+			calculateHawkTokenScoring();
 			break;
 		case GoalType.B:
 			calculateBearTokenScoringB();
@@ -3359,9 +3360,9 @@ function setupFinalScoring() {
 			calculateElkTokenScoring();
 			calculateSalmonTokenScoring();
 			calculateFoxTokenScoring();
+			calculateHawkTokenScoring();
 			break;
 	}
-	calculateHawkTokenScoring();
 
 	const allWildlife = Object.keys(tokenScoring);
 
