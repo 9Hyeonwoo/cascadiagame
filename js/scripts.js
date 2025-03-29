@@ -3336,6 +3336,7 @@ function setupFinalScoring() {
 			calculateElkTokenScoringB();
 			calculateSalmonTokenScoringB();
 			calculateFoxTokenScoringB();
+			calculateHawkTokenScoringB();
 			break;
 		case GoalType.C:
 			calculateBearTokenScoringC();
@@ -4913,6 +4914,105 @@ function calculateHawkTokenScoring() {
 
 	tokenScoring.hawk.totalScore = hawkScoringValues[numIsolatedHawks];
 
+}
+
+function calculateHawkTokenScoringB() {
+	let hawkScoringValues = {
+		'0': 0,
+		'1': 0,
+		'2': 5,
+		'3': 9,
+		'4': 12,
+		'5': 16,
+		'6': 20,
+		'7': 24,
+		'8': 28
+	}
+
+	const tokenIDs = Object.keys(allPlacedTokens);
+
+	let isolatedSightHawks = [];
+
+	for (const tokenID of tokenIDs) {
+
+		if(allPlacedTokens[tokenID] == 'hawk') {
+
+			let neighbourTiles = neighbourTileIDs(tokenID);
+
+			let neighbouringHawks = false;
+
+			for (let i = 0; i < neighbourTiles.length; i++) {
+				if(allPlacedTokens.hasOwnProperty(neighbourTiles[i])) {
+					if(allPlacedTokens[neighbourTiles[i]] == 'hawk') {
+						neighbouringHawks = true;
+					}
+				}
+			}
+
+			let straightSight = false;
+			for (let direction of directions) {
+				if (straightHawkTokenInDirection(tokenID, direction)) {
+					straightSight = true;
+					break;
+				}
+			}
+			if(!neighbouringHawks && straightSight) {
+				isolatedSightHawks.push(tokenID);
+			}
+		}
+	}
+
+	tokenScoring.hawk.totalScore = hawkScoringValues[Math.min(isolatedSightHawks.length, 8)];
+}
+
+function straightHawkTokenInDirection(baseID, thisDirection) {
+	// find max/min row/col index
+	let maxRow = Number.MIN_VALUE;
+	let maxCol = Number.MIN_VALUE;
+	let minRow = Number.MAX_VALUE;
+	let minCol = Number.MAX_VALUE;
+	for (let tile of Object.keys(allPlacedTiles)) {
+		let splitTileID = tile.split('-');
+		let row = parseInt(splitTileID[1]);
+		let column = parseInt(splitTileID[3]);
+		if (row > maxRow) {
+			maxRow = row;
+		}
+		if (row < minRow) {
+			minRow = row;
+		}
+		if (column > maxCol) {
+			maxCol = column;
+		}
+		if (column < minCol) {
+			minCol = column;
+		}
+	}
+	
+	let startID = baseID
+	let splitTileID = startID.split('-');
+	let thisRow = parseInt(splitTileID[1]);
+	let thisColumn = parseInt(splitTileID[3]);
+	let directionIndex = directions.indexOf(thisDirection);
+	while (thisRow <= maxRow && thisRow >= minRow && thisColumn <= maxCol && thisColumn >= minCol) {
+		let rowColMapSet = thisRow % 2;
+		if(rowColMapSet != 0) rowColMapSet = 1;
+
+		let newRow = thisRow + linkedTileSides[directionIndex].rowColMapping[rowColMapSet].rowDif;
+		let newColumn = thisColumn + linkedTileSides[directionIndex].rowColMapping[rowColMapSet].colDif;
+
+		let newTileID = 'row-' + newRow + '-column-' + newColumn;
+
+		if(allPlacedTokens.hasOwnProperty(newTileID)) {
+			if(allPlacedTokens[newTileID] == 'hawk') {
+				return newTileID;
+			}
+		} 
+		thisRow = newRow;
+		thisColumn = newColumn;
+	} 
+
+	return false
 }
 
 let usedSalmonTokenIDs = [];
