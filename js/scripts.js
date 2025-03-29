@@ -3340,6 +3340,7 @@ function setupFinalScoring() {
 			calculateBearTokenScoringC();
 			calculateElkTokenScoringC();
 			calculateSalmonTokenScoringC();
+			calculateFoxTokenScoringC();
 			break;
 		case GoalType.D:
 			calculateBearTokenScoringD();
@@ -4688,6 +4689,48 @@ function calculateFoxTokenScoringB() {
 			}
 			if (pairCount > 0) {
 				tokenScoring.fox.totalScore += foxScoringValues[pairCount];
+			}
+		}
+	}
+}
+
+function calculateFoxTokenScoringC() {
+	let foxScoringValues = {
+		'1': 1,
+		'2': 2,
+		'3': 3,
+		'4': 4,
+		'5': 5,
+		'6': 6,
+	}
+
+	const tokenIDs = Object.keys(allPlacedTokens);
+
+	for (const tokenID of tokenIDs) {
+
+		if(allPlacedTokens[tokenID] == 'fox') {
+
+			let neighbourTiles = neighbourTileIDs(tokenID);
+
+			let allNeighbouringWildlife = [];
+
+			for (let i = 0; i < neighbourTiles.length; i++) {
+
+				if(allPlacedTokens.hasOwnProperty(neighbourTiles[i])) {
+					allNeighbouringWildlife.push(allPlacedTokens[neighbourTiles[i]]);
+				}
+			}
+
+			let maxCount = 0
+			for (let type of wildlife) {
+				if (type === 'fox') continue;
+				const count = allNeighbouringWildlife.filter(item => item === type).length;
+				if (count > maxCount) {
+					maxCount = count;
+				}
+			}
+			if (maxCount > 0) {
+				tokenScoring.fox.totalScore += foxScoringValues[maxCount];
 			}
 		}
 	}
