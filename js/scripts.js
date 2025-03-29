@@ -3346,6 +3346,7 @@ function setupFinalScoring() {
 			calculateBearTokenScoringD();
 			calculateElkTokenScoringD();
 			calculateSalmonTokenScoringD();
+			calculateFoxTokenScoringD();
 			break;
 		case GoalType.E:
 			calculateBearTokenScoringE();
@@ -4733,6 +4734,100 @@ function calculateFoxTokenScoringC() {
 				tokenScoring.fox.totalScore += foxScoringValues[maxCount];
 			}
 		}
+	}
+}
+
+function calculateFoxTokenScoringD() {
+	function findMaxScore(cases, usedPairIDs) {
+		let maxScore = 0;
+		for (let i = 0; i < cases.length; i ++) {
+			let item = cases[i]
+			if (usedPairIDs.includes(item["pair"][0]) || usedPairIDs.includes(item["pair"][1])) continue;
+			
+			let newUsed = usedPairIDs;
+			newUsed.push(...item["pair"]);
+			let totalScore = item["score"];
+			totalScore += findMaxScore(cases.filter(_, index => index !== i), newUsed);
+			if (totalScore > maxScore) {
+				maxScore = totalScore;
+			}
+		}
+		return maxScore;
+	}
+	let foxScoringValues = {
+		'1': 5,
+		'2': 7,
+		'3': 9,
+		'4': 11,
+	}
+
+    let usedTokenIDs = [];
+
+	const tokenIDs = Object.keys(allPlacedTokens);
+
+	for (const tokenID of tokenIDs) {
+        if (allPlacedTokens[tokenID] !== 'fox' || usedTokenIDs.includes(tokenID)) continue;
+
+        let potentialTokenIDs = [tokenID];
+        let queue = [tokenID];
+
+		while (queue.length > 0) {
+            let currentToken = queue.shift();
+            let neighbourTiles = neighbourTileIDs(currentToken);
+
+            for (let i = 0; i < neighbourTiles.length; i++) {
+                let neighbourID = neighbourTiles[i];
+
+                if (
+                    allPlacedTokens.hasOwnProperty(neighbourID) &&
+                    allPlacedTokens[neighbourID] === 'fox' &&
+                    !potentialTokenIDs.includes(neighbourID)
+                ) {
+                    potentialTokenIDs.push(neighbourID);
+                    queue.push(neighbourID);
+                }
+            }
+        }
+
+		if (potentialTokenIDs.length < 2) continue;
+
+		let possibleCases = [];
+
+		for (let i = 0; i < potentialTokenIDs.length - 1; i++) {
+			for (let j = i+1; j < potentialTokenIDs.length; j++) {
+				let mainTileId = potentialTokenIDs[i];
+				let pairTileId = potentialTokenIDs[j];
+				
+				let neighbourTiles = neighbourTileIDs(mainTileId);
+				neighbourTiles.push(...neighbourTileIDs(pairTileId));
+				let uniqueNeighbourTiles = neighbourTiles.filter(onlyUnique);
+				
+				let neighbourWildlifes = []
+				for (let neighbourTile of uniqueNeighbourTiles) {
+					if(allPlacedTokens.hasOwnProperty(neighbourTile)) {
+						neighbourWildlifes.push(allPlacedTokens[neighbourTile]);
+					}
+				}
+				
+				let pairCount = 0
+				for (let type of wildlife) {
+					if (type === 'fox') continue;
+					const count = neighbourWildlifes.filter(item => item === type).length;
+					if (count >= 2) {
+						pairCount += 1;
+					}
+				}
+				
+				if (pairCount > 0) {
+					possibleCases.push({"pair": [mainTileId, pairTileId], "score": foxScoringValues[pairCount]})
+				}
+			}
+		}
+
+		let maxScore = findMaxScore(possibleCases, []);
+
+		usedTokenIDs.push(...potentialTokenIDs)
+		tokenScoring.fox.totalScore += maxScore;
 	}
 }
 
