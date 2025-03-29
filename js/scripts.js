@@ -3352,6 +3352,7 @@ function setupFinalScoring() {
 			calculateBearTokenScoringE();
 			calculateElkTokenScoringE();
 			calculateSalmonTokenScoringE();
+			calculateFoxTokenScoringE();
 			break;
 		default:
 			calculateBearTokenScoring();
@@ -4828,6 +4829,43 @@ function calculateFoxTokenScoringD() {
 
 		usedTokenIDs.push(...potentialTokenIDs)
 		tokenScoring.fox.totalScore += maxScore;
+	}
+}
+
+function calculateFoxTokenScoringE() {
+	let foxScoringValues = {
+		'1': 1,
+		'2': 2,
+		'3': 2,
+	}
+
+	const tokenIDs = Object.keys(allPlacedTokens);
+
+	for (const tokenID of tokenIDs) {
+
+		if(allPlacedTokens[tokenID] == 'fox') {
+
+			let neighbourTiles = neighbourTileIDs(tokenID);
+
+			let allNeighbouringWildlife = [];
+
+			for (let i = 0; i < neighbourTiles.length; i++) {
+
+				if(allPlacedTokens.hasOwnProperty(neighbourTiles[i])) {
+					allNeighbouringWildlife.push(allPlacedTokens[neighbourTiles[i]]);
+				}
+			}
+
+			let scores = 0
+			for (let type of wildlife) {
+				if (type === 'fox') continue;
+				const count = allNeighbouringWildlife.filter(item => item === type).length;
+				if (count >= 1 && count <= 3) {
+					scores += foxScoringValues[count];
+				}
+			}
+			tokenScoring.fox.totalScore += scores;
+		}
 	}
 }
 
