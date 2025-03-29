@@ -3347,6 +3347,7 @@ function setupFinalScoring() {
 		case GoalType.E:
 			calculateBearTokenScoringE();
 			calculateElkTokenScoringE();
+			calculateSalmonTokenScoringE();
 			break;
 		default:
 			calculateBearTokenScoring();
@@ -5056,6 +5057,137 @@ function calculateSalmonTokenScoringD() {
 		}
 		tokenScoring.salmon.totalScore += uniqueSalmonIDs.length
 		tokenScoring.salmon.totalScore += usedTokenIDs.length
+	}
+}
+
+function calculateSalmonTokenScoringE() {
+
+	let groupScoringValues = {
+		'1': 1,
+		'2': 3,
+		'3': 5,
+	}
+
+	const tokenIDs = Object.keys(allPlacedTokens);
+
+	let allSalmonTileIDs = [];
+
+	for (const tokenID of tokenIDs) {
+
+		if(allPlacedTokens[tokenID] == 'salmon') {
+			allSalmonTileIDs.push(tokenID);
+		}
+	}
+
+	let validSalmonTiles = []
+
+	for (let i = 0; i < allSalmonTileIDs.length; i++) {
+		let neighbouringSalmon = searchNeighbourTilesForWildlife(allSalmonTileIDs[i], 'salmon');
+		if(neighbouringSalmon.length <= 2) {
+			validSalmonTiles.push(allSalmonTileIDs[i]);
+		} else {
+			usedSalmonTokenIDs.push(allSalmonTileIDs[i]);
+		}
+	}
+
+	for (let j = 0; j < validSalmonTiles.length; j++) {
+
+		potentialSalmonTokenIDs = [];
+
+		if(usedSalmonTokenIDs.indexOf(validSalmonTiles[j]) == -1) {
+
+			let potentialNeighbourSalmon = searchNeighbourTilesForWildlife(validSalmonTiles[j], 'salmon');
+			let confirmedNeighbourSalmon = [];
+
+			for (let k = 0; k < potentialNeighbourSalmon.length; k++) {
+				if(usedSalmonTokenIDs.indexOf(potentialNeighbourSalmon[k]) == -1) {
+					confirmedNeighbourSalmon.push(potentialNeighbourSalmon[k]);
+				}
+			}
+
+			if(confirmedNeighbourSalmon.length == 2) {
+				let tilesToCheck = [validSalmonTiles[j]];
+				tilesToCheck.push(...confirmedNeighbourSalmon);
+
+				let firstNeighbourTiles = neighbourTileIDs(confirmedNeighbourSalmon[0]);
+				let secondNeighbourTiles = neighbourTileIDs(confirmedNeighbourSalmon[1]);
+
+				if(firstNeighbourTiles.indexOf(confirmedNeighbourSalmon[1]) === -1 && secondNeighbourTiles.indexOf(confirmedNeighbourSalmon[0]) === -1) {
+					// perform a run forwards and backwards!!
+					let forwardsAndBackwardsSalmonRunIDs = forwardsAndBackwardsSalmonRun(validSalmonTiles[j], confirmedNeighbourSalmon);
+
+					potentialSalmonTokenIDs.push(...forwardsAndBackwardsSalmonRunIDs);
+
+				} else {
+					// since all tokens with 3 or more neighbours have been removed - if this criteria of the loop is met it HAS to be a valid triangle formation
+					potentialSalmonTokenIDs.push(...tilesToCheck);
+					usedSalmonTokenIDs.push(...tilesToCheck);
+				}
+
+			} else if(confirmedNeighbourSalmon.length < 2) {
+				potentialSalmonTokenIDs.push(validSalmonTiles[j]);
+				let salmonRunIDs = salmonTokensInRun(validSalmonTiles[j], 'salmon');
+				potentialSalmonTokenIDs.push(...salmonRunIDs);
+
+			}
+			confirmedSalmonRuns.push(potentialSalmonTokenIDs);
+		}
+	}
+
+	confirmedSalmonRuns.sort(function (a, b) {
+		return b.length - a.length;
+	});
+
+	for (let i = 0; i < confirmedSalmonRuns.length; i++) {
+		let uniqueSalmonIDs = confirmedSalmonRuns[i].filter(onlyUnique);
+		if (uniqueSalmonIDs.length < 3) continue;
+
+		let usedTokenIDs = []
+		for (let salmonId of uniqueSalmonIDs) {
+            let neighbourTiles = neighbourTileIDs(salmonId);
+			for (let neighbourID of neighbourTiles) {
+				if (
+					allPlacedTokens.hasOwnProperty(neighbourID) && 
+					allPlacedTokens[neighbourID] !== '' && 
+					allPlacedTokens[neighbourID] !== 'salmon' && 
+					!usedTokenIDs.includes(neighbourID)
+				) {
+					usedTokenIDs.push(neighbourID);
+				}
+			}
+		}
+
+		let groupedTokens = [];
+		for (let rootTokenId of usedTokenIDs) {
+			if (groupedTokens.includes(rootTokenId)) continue;
+
+			let potentialTokenIDs = [rootTokenId];
+        	let queue = [rootTokenId];
+			let tokenType = allPlacedTokens[rootTokenId];
+
+        	while (queue.length > 0) {
+        	    let currentToken = queue.shift();
+        	    let neighbourTiles = neighbourTileIDs(currentToken);
+
+        	    for (let i = 0; i < neighbourTiles.length; i++) {
+        	        let neighbourID = neighbourTiles[i];
+
+        	        if (
+						usedTokenIDs.includes(neighbourID) &&
+						!groupedTokens.includes(neighbourID) &&
+        	            allPlacedTokens.hasOwnProperty(neighbourID) &&
+        	            allPlacedTokens[neighbourID] === tokenType &&
+        	            !potentialTokenIDs.includes(neighbourID)
+        	        ) {
+        	            potentialTokenIDs.push(neighbourID);
+        	            queue.push(neighbourID);
+        	        }
+        	    }
+        	}
+			
+			groupedTokens.push(...potentialTokenIDs);
+			tokenScoring.salmon.totalScore += groupScoringValues[Math.min(potentialTokenIDs.length, 3)]
+		}
 	}
 }
 
