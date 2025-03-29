@@ -3955,7 +3955,7 @@ function calculateBearTokenScoringE() {
     }
 	
 	for (const size of Object.keys(groupScores)) {
-		let tempScore = groupCounts[size] * groupCounts[size];
+		let tempScore = groupCounts[size] * groupScores[size];
 		if (tempScore > totalScore) {
 			totalScore = tempScore
 		}
