@@ -4749,7 +4749,7 @@ function calculateFoxTokenScoringD() {
 			let newUsed = usedPairIDs;
 			newUsed.push(...item["pair"]);
 			let totalScore = item["score"];
-			totalScore += findMaxScore(cases.filter(_, index => index !== i), newUsed);
+			totalScore += findMaxScore(cases.filter((_, index) => index !== i), newUsed);
 			if (totalScore > maxScore) {
 				maxScore = totalScore;
 			}
