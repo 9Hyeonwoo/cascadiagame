@@ -3343,6 +3343,7 @@ function setupFinalScoring() {
 			calculateElkTokenScoringC();
 			calculateSalmonTokenScoringC();
 			calculateFoxTokenScoringC();
+			calculateHawkTokenScoringC();
 			break;
 		case GoalType.D:
 			calculateBearTokenScoringD();
@@ -4963,6 +4964,35 @@ function calculateHawkTokenScoringB() {
 	}
 
 	tokenScoring.hawk.totalScore = hawkScoringValues[Math.min(isolatedSightHawks.length, 8)];
+}
+
+function calculateHawkTokenScoringC() {
+
+	const tokenIDs = Object.keys(allPlacedTokens);
+
+	let usedTokenIDs = [];
+
+	let sightCount = 0;
+	for (const tokenID of tokenIDs) {
+
+		if(allPlacedTokens[tokenID] == 'hawk') {
+			let neighbourTiles = neighbourTileIDs(tokenID);
+			for (let direction of directions) {
+				let inSight = straightHawkTokenInDirection(tokenID, direction);
+				if (
+					inSight && 
+					!neighbourTiles.includes(inSight) && 
+					!usedTokenIDs.includes(inSight)
+				) {
+					sightCount += 1;
+				}
+			}
+
+			usedTokenIDs.push(tokenID);
+		}
+	}
+
+	tokenScoring.hawk.totalScore = sightCount * 3;
 }
 
 function straightHawkTokenInDirection(baseID, thisDirection) {
