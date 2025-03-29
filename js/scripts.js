@@ -3350,6 +3350,7 @@ function setupFinalScoring() {
 			calculateElkTokenScoringD();
 			calculateSalmonTokenScoringD();
 			calculateFoxTokenScoringD();
+			calculateHawkTokenScoringD();
 			break;
 		case GoalType.E:
 			calculateBearTokenScoringE();
@@ -4981,8 +4982,8 @@ function calculateHawkTokenScoringC() {
 				let inSight = straightHawkTokenInDirection(tokenID, direction);
 				if (
 					inSight && 
-					!neighbourTiles.includes(inSight) && 
-					!usedTokenIDs.includes(inSight)
+					!neighbourTiles.includes(inSight["target"]) && 
+					!usedTokenIDs.includes(inSight["target"])
 				) {
 					sightCount += 1;
 				}
@@ -4993,6 +4994,62 @@ function calculateHawkTokenScoringC() {
 	}
 
 	tokenScoring.hawk.totalScore = sightCount * 3;
+}
+
+function calculateHawkTokenScoringD() {
+	let hawkScoringValues = {
+		'0': 0,
+		'1': 4,
+		'2': 7,
+		'3': 9,
+	}
+	function findMaxScore(cases, usedPairIDs) {
+		let maxScore = 0;
+		for (let i = 0; i < cases.length; i ++) {
+			let item = cases[i]
+			if (usedPairIDs.includes(item["pair"][0]) || usedPairIDs.includes(item["pair"][1])) continue;
+			
+			let newUsed = usedPairIDs;
+			newUsed.push(...item["pair"]);
+			let totalScore = item["score"];
+			totalScore += findMaxScore(cases.filter((_, index) => index !== i), newUsed);
+			if (totalScore > maxScore) {
+				maxScore = totalScore;
+			}
+		}
+		return maxScore;
+	}
+
+	const tokenIDs = Object.keys(allPlacedTokens);
+
+	let potentialCases = [];
+
+	for (const tokenID of tokenIDs) {
+
+		if(allPlacedTokens[tokenID] == 'hawk') {
+			let neighbourTiles = neighbourTileIDs(tokenID);
+			for (let direction of directions) {
+				let inSight = straightHawkTokenInDirection(tokenID, direction);
+				if (
+					inSight && 
+					!neighbourTiles.includes(inSight["target"])
+				) {
+					let pathTokens = inSight["path"]
+						.map(id => allPlacedTokens[id])
+						.filter(i => i)
+						.filter(onlyUnique)
+					potentialCases.push({
+						"pair": [tokenID, inSight["target"]],
+						"score": hawkScoringValues[Math.min(pathTokens.length, 3)]
+					});
+				}
+			}
+		}
+	}
+
+	let maxScore = findMaxScore(potentialCases, []);
+
+	tokenScoring.hawk.totalScore = maxScore;
 }
 
 function straightHawkTokenInDirection(baseID, thisDirection) {
@@ -5024,6 +5081,7 @@ function straightHawkTokenInDirection(baseID, thisDirection) {
 	let thisRow = parseInt(splitTileID[1]);
 	let thisColumn = parseInt(splitTileID[3]);
 	let directionIndex = directions.indexOf(thisDirection);
+	let path = [];
 	while (thisRow <= maxRow && thisRow >= minRow && thisColumn <= maxCol && thisColumn >= minCol) {
 		let rowColMapSet = thisRow % 2;
 		if(rowColMapSet != 0) rowColMapSet = 1;
@@ -5035,9 +5093,13 @@ function straightHawkTokenInDirection(baseID, thisDirection) {
 
 		if(allPlacedTokens.hasOwnProperty(newTileID)) {
 			if(allPlacedTokens[newTileID] == 'hawk') {
-				return newTileID;
+				return {
+					"target": newTileID,
+					"path": path
+				};
 			}
 		} 
+		path.push(newTileID);
 		thisRow = newRow;
 		thisColumn = newColumn;
 	} 
