@@ -3328,11 +3328,13 @@ function setupFinalScoring() {
 			calculateBearTokenScoring();
 			calculateElkTokenScoring();
 			calculateSalmonTokenScoring();
+			calculateFoxTokenScoring();
 			break;
 		case GoalType.B:
 			calculateBearTokenScoringB();
 			calculateElkTokenScoringB();
 			calculateSalmonTokenScoringB();
+			calculateFoxTokenScoringB();
 			break;
 		case GoalType.C:
 			calculateBearTokenScoringC();
@@ -3353,9 +3355,9 @@ function setupFinalScoring() {
 			calculateBearTokenScoring();
 			calculateElkTokenScoring();
 			calculateSalmonTokenScoring();
+			calculateFoxTokenScoring();
 			break;
 	}
-	calculateFoxTokenScoring();
 	calculateHawkTokenScoring();
 
 	const allWildlife = Object.keys(tokenScoring);
@@ -4648,6 +4650,45 @@ function calculateFoxTokenScoring() {
 				tokenScoring.fox.totalScore += foxScoringValues[numUniqueWildlife];
 			}
 
+		}
+	}
+}
+
+function calculateFoxTokenScoringB() {
+	let foxScoringValues = {
+		'1': 3,
+		'2': 5,
+		'3': 7,
+	}
+
+	const tokenIDs = Object.keys(allPlacedTokens);
+
+	for (const tokenID of tokenIDs) {
+
+		if(allPlacedTokens[tokenID] == 'fox') {
+
+			let neighbourTiles = neighbourTileIDs(tokenID);
+
+			let allNeighbouringWildlife = [];
+
+			for (let i = 0; i < neighbourTiles.length; i++) {
+
+				if(allPlacedTokens.hasOwnProperty(neighbourTiles[i])) {
+					allNeighbouringWildlife.push(allPlacedTokens[neighbourTiles[i]]);
+				}
+			}
+
+			let pairCount = 0
+			for (let type of wildlife) {
+				if (type === 'fox') continue;
+				const count = allNeighbouringWildlife.filter(item => item === type).length;
+				if (count >= 2) {
+					pairCount += 1;
+				}
+			}
+			if (pairCount > 0) {
+				tokenScoring.fox.totalScore += foxScoringValues[pairCount];
+			}
 		}
 	}
 }
