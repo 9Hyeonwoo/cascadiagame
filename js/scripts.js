@@ -3357,6 +3357,7 @@ function setupFinalScoring() {
 			calculateElkTokenScoringE();
 			calculateSalmonTokenScoringE();
 			calculateFoxTokenScoringE();
+			calculateHawkTokenScoringE();
 			break;
 		default:
 			calculateBearTokenScoring();
@@ -5050,6 +5051,35 @@ function calculateHawkTokenScoringD() {
 	let maxScore = findMaxScore(potentialCases, []);
 
 	tokenScoring.hawk.totalScore = maxScore;
+}
+
+function calculateHawkTokenScoringE() {
+	let hawkScoringValues = {
+		'0': 0, '1': 0, '2': 0,
+		'3': 2, '4': 2, '5': 2,
+		'6': 4, '7': 4, '8': 4,
+		'9': 7, '10': 7, '11': 7,
+		'12': 10, '13': 10, '14': 10, '15': 10,
+		'16': 14, '17': 14, '18': 14, '19': 14,
+		'20': 18, '21': 18, '22': 18, '23': 18, '24': 18,
+		'25': 22, '26': 22, '27': 22, '28': 22, '29': 22,
+		'30': 27
+	};
+	
+	const tokenIDs = Object.keys(allPlacedTokens);
+	const placedTileIDs = Object.keys(allPlacedTiles);
+	let emptyTiles = [];
+	for (const tokenID of tokenIDs) {
+		if(allPlacedTokens[tokenID] == 'hawk') {
+			let neighbourTiles = neighbourTileIDs(tokenID);
+			let emptyNeighbours = neighbourTiles.filter(id => !placedTileIDs.includes(id));
+			emptyTiles.push(...emptyNeighbours);
+		}
+	}
+
+	let uniqueEmptyTiles = emptyTiles.filter(onlyUnique);
+
+	tokenScoring.hawk.totalScore = hawkScoringValues[Math.min(uniqueEmptyTiles.length, 30)];
 }
 
 function straightHawkTokenInDirection(baseID, thisDirection) {
