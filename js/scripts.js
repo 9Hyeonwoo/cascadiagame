@@ -3006,7 +3006,7 @@ function endOfGameSetup() {
 			</div>
 
 			<div id="bear-finalScoringContainer" class="largeWildlifeFinalScoringInfo finalScoringItem inactiveScoringItem">
-				<img src="img/scoring-goals/bear-large.jpg" alt="" />
+				<img src="${goalPictures["bear"][goalType]}" alt="" />
 
 				<div class="individualWildlifeScoringInputContainer">
 					<img class="individualWildlifeScore-background" src="${goalPictures["bear"][goalType]}" alt="" />
@@ -3017,7 +3017,7 @@ function endOfGameSetup() {
 			</div>
 
 			<div id="elk-finalScoringContainer" class="largeWildlifeFinalScoringInfo finalScoringItem inactiveScoringItem">
-				<img src="img/scoring-goals/elk-large.jpg" alt="" />
+				<img src="${goalPictures["elk"][goalType]}" alt="" />
 
 				<div class="individualWildlifeScoringInputContainer">
 					<img class="individualWildlifeScore-background" src="${goalPictures["elk"][goalType]}" alt="" />
@@ -3028,7 +3028,7 @@ function endOfGameSetup() {
 			</div>
 
 			<div id="fox-finalScoringContainer" class="largeWildlifeFinalScoringInfo finalScoringItem inactiveScoringItem">
-				<img src="img/scoring-goals/fox-large.jpg" alt="" />
+				<img src="${goalPictures["fox"][goalType]}" alt="" />
 
 				<div class="individualWildlifeScoringInputContainer">
 					<img class="individualWildlifeScore-background" src="${goalPictures["fox"][goalType]}" alt="" />
@@ -3039,7 +3039,7 @@ function endOfGameSetup() {
 			</div>
 
 			<div id="hawk-finalScoringContainer" class="largeWildlifeFinalScoringInfo finalScoringItem inactiveScoringItem">
-				<img src="img/scoring-goals/hawk-large.jpg" alt="" />
+				<img src="${goalPictures["hawk"][goalType]}" alt="" />
 
 				<div class="individualWildlifeScoringInputContainer">
 					<img class="individualWildlifeScore-background" src="${goalPictures["hawk"][goalType]}" alt="" />
@@ -3050,7 +3050,7 @@ function endOfGameSetup() {
 			</div>
 
 			<div id="salmon-finalScoringContainer" class="largeWildlifeFinalScoringInfo finalScoringItem inactiveScoringItem">
-				<img src="img/scoring-goals/salmon-large.jpg" alt="" />
+				<img src="${goalPictures["salmon"][goalType]}" alt="" />
 
 				<div class="individualWildlifeScoringInputContainer">
 					<img class="individualWildlifeScore-background" src="${goalPictures["salmon"][goalType]}" alt="" />
