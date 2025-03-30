@@ -3009,7 +3009,7 @@ function endOfGameSetup() {
 				<img src="${goalPictures["bear"][goalType]}" alt="" />
 
 				<div class="individualWildlifeScoringInputContainer">
-					<img class="individualWildlifeScore-background" src="${goalPictures["bear"][goalType]}" alt="" />
+					<img class="individualWildlifeScore-background" src="img/scoring/bearScore.jpg" alt="" />
 					<img class="individualWildlifeScore-mobileBackground" src="img/scoring/bearScoreMobile.jpg" alt="" />
 					<p class="individualScoringInput" id="bear-individualWildlifeScoringInput" category="individualWildlife-Cell"><span class="individualPointsNum">0</span> point<span class="pluralPoints">s</span></p>
 				</div>
@@ -3020,7 +3020,7 @@ function endOfGameSetup() {
 				<img src="${goalPictures["elk"][goalType]}" alt="" />
 
 				<div class="individualWildlifeScoringInputContainer">
-					<img class="individualWildlifeScore-background" src="${goalPictures["elk"][goalType]}" alt="" />
+					<img class="individualWildlifeScore-background" src="img/scoring/elkScore.jpg" alt="" />
 					<img class="individualWildlifeScore-mobileBackground" src="img/scoring/elkScoreMobile.jpg" alt="" />
 					<p class="individualScoringInput" id="elk-individualWildlifeScoringInput" category="individualWildlife-Cell"><span class="individualPointsNum">0</span> point<span class="pluralPoints">s</span></p>
 				</div>
@@ -3031,7 +3031,7 @@ function endOfGameSetup() {
 				<img src="${goalPictures["fox"][goalType]}" alt="" />
 
 				<div class="individualWildlifeScoringInputContainer">
-					<img class="individualWildlifeScore-background" src="${goalPictures["fox"][goalType]}" alt="" />
+					<img class="individualWildlifeScore-background" src="img/scoring/foxScore.jpg" alt="" />
 					<img class="individualWildlifeScore-mobileBackground" src="img/scoring/foxScoreMobile.jpg" alt="" />
 					<p class="individualScoringInput" id="fox-individualWildlifeScoringInput" category="individualWildlife-Cell"><span class="individualPointsNum">0</span> point<span class="pluralPoints">s</span></p>
 				</div>
@@ -3042,7 +3042,7 @@ function endOfGameSetup() {
 				<img src="${goalPictures["hawk"][goalType]}" alt="" />
 
 				<div class="individualWildlifeScoringInputContainer">
-					<img class="individualWildlifeScore-background" src="${goalPictures["hawk"][goalType]}" alt="" />
+					<img class="individualWildlifeScore-background" src="img/scoring/hawkScore.jpg" alt="" />
 					<img class="individualWildlifeScore-mobileBackground" src="img/scoring/hawkScoreMobile.jpg" alt="" />
 					<p class="individualScoringInput" id="hawk-individualWildlifeScoringInput" category="individualWildlife-Cell"><span class="individualPointsNum">0</span> point<span class="pluralPoints">s</span></p>
 				</div>
@@ -3053,7 +3053,7 @@ function endOfGameSetup() {
 				<img src="${goalPictures["salmon"][goalType]}" alt="" />
 
 				<div class="individualWildlifeScoringInputContainer">
-					<img class="individualWildlifeScore-background" src="${goalPictures["salmon"][goalType]}" alt="" />
+					<img class="individualWildlifeScore-background" src="img/scoring/salmonScore.jpg" alt="" />
 					<img class="individualWildlifeScore-mobileBackground" src="img/scoring/salmonScoreMobile.jpg" alt="" />
 					<p class="individualScoringInput" id="salmon-individualWildlifeScoringInput" category="individualWildlife-Cell"><span class="individualPointsNum">0</span> point<span class="pluralPoints">s</span></p>
 				</div>
@@ -3357,7 +3357,6 @@ function setupFinalScoring() {
 			calculateElkTokenScoringE();
 			calculateSalmonTokenScoringE();
 			calculateFoxTokenScoringE();
-			calculateHawkTokenScoringE();
 			break;
 		default:
 			calculateBearTokenScoring();
@@ -5051,35 +5050,6 @@ function calculateHawkTokenScoringD() {
 	let maxScore = findMaxScore(potentialCases, []);
 
 	tokenScoring.hawk.totalScore = maxScore;
-}
-
-function calculateHawkTokenScoringE() {
-	let hawkScoringValues = {
-		'0': 0, '1': 0, '2': 0,
-		'3': 2, '4': 2, '5': 2,
-		'6': 4, '7': 4, '8': 4,
-		'9': 7, '10': 7, '11': 7,
-		'12': 10, '13': 10, '14': 10, '15': 10,
-		'16': 14, '17': 14, '18': 14, '19': 14,
-		'20': 18, '21': 18, '22': 18, '23': 18, '24': 18,
-		'25': 22, '26': 22, '27': 22, '28': 22, '29': 22,
-		'30': 27
-	};
-	
-	const tokenIDs = Object.keys(allPlacedTokens);
-	const placedTileIDs = Object.keys(allPlacedTiles);
-	let emptyTiles = [];
-	for (const tokenID of tokenIDs) {
-		if(allPlacedTokens[tokenID] == 'hawk') {
-			let neighbourTiles = neighbourTileIDs(tokenID);
-			let emptyNeighbours = neighbourTiles.filter(id => !placedTileIDs.includes(id));
-			emptyTiles.push(...emptyNeighbours);
-		}
-	}
-
-	let uniqueEmptyTiles = emptyTiles.filter(onlyUnique);
-
-	tokenScoring.hawk.totalScore = hawkScoringValues[Math.min(uniqueEmptyTiles.length, 30)];
 }
 
 function straightHawkTokenInDirection(baseID, thisDirection) {
