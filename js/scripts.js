@@ -4374,7 +4374,7 @@ function calculateElkTokenScoringB() {
 		}
     }
 
-	totalScore = findMaxScore(possibleCases, [])["score"]
+	totalScore = findMaxScore(possibleCases.sort((a,b) => a["score"] > b["score"] ? -1 : 1), [])["score"]
 
 	tokenScoring.elk.totalScore = totalScore;
 
