@@ -4374,7 +4374,7 @@ function calculateElkTokenScoringB() {
 		}
     }
 
-	totalScore = findMaxScore(possibleCases, [])
+	totalScore = findMaxScore(possibleCases, [])["score"]
 
 	tokenScoring.elk.totalScore = totalScore;
 
@@ -4497,29 +4497,31 @@ function calculateElkTokenScoringE() {
     	for (let direction in potentialFormations) {
 			if (direction in elkFormationCounts) continue;
 
-			let potentialTokenIDs = [];
+			let potentialCases = [];
     		for (const tokenID of tokenIDs) {
-        		if (allPlacedTokens[tokenID] !== 'elk' || usedTokenIDs.includes(tokenID) || potentialTokenIDs.includes(tokenID)) continue;
+        		if (allPlacedTokens[tokenID] !== 'elk' || usedTokenIDs.includes(tokenID)) continue;
 
 				let pairToken = nextElkTokenInDirection(tokenID, direction);
-				if (pairToken && !usedTokenIDs.includes(pairToken) && !potentialTokenIDs.includes(pairToken)) {
-					potentialTokenIDs.push(tokenID);
-					potentialTokenIDs.push(pairToken);
+				if (pairToken && !usedTokenIDs.includes(pairToken)) {
+					potentialCases.push({
+						"pair": [tokenID, pairToken],
+						"score": 1
+					})
 				}
 			}
-			potentialFormations[direction] = potentialTokenIDs
+			potentialFormations[direction] = potentialCases
 		}
 
-		const maxEntry = Object.entries(potentialFormations).reduce((max, entry) =>
-			entry[1].length > max[1].length ? entry : max
-		);
+		const maxEntry = Object.entries(potentialFormations)
+			.map(entry => [entry[0], findMaxScore(entry[1], [])])
+			.reduce((max, entry) => max[1]["score"] > entry[1]["score"] ? max : entry);
 
-		if (maxEntry[1].length == 0) break;
+		if (maxEntry[1]["score"] == 0) break;
 
 		elkFormationCounts[maxEntry[0]] = maxEntry[1];
-		let scores = elkScoringValues[Math.min(maxEntry[1].length, 4)];
+		let scores = elkScoringValues[Math.min(maxEntry[1]["score"], 4)];
 		totalScore += scores;
-		usedTokenIDs.push(...maxEntry[1]);
+		usedTokenIDs.push(...maxEntry[1]["pair"]);
 	}
 
     tokenScoring.elk.totalScore = totalScore;
@@ -4748,7 +4750,7 @@ function calculateFoxTokenScoringD() {
 			}
 		}
 
-		let maxScore = findMaxScore(possibleCases, []);
+		let maxScore = findMaxScore(possibleCases, [])["score"];
 
 		usedTokenIDs.push(...potentialTokenIDs)
 		tokenScoring.fox.totalScore += maxScore;
@@ -4949,7 +4951,7 @@ function calculateHawkTokenScoringD() {
 		}
 	}
 
-	let maxScore = findMaxScore(potentialCases, []);
+	let maxScore = findMaxScore(potentialCases, [])["score"];
 
 	tokenScoring.hawk.totalScore = maxScore;
 }
@@ -5941,6 +5943,7 @@ function indexOfMax(arr) {
 
 function findMaxScore(cases, usedPairIDs) {
 	let maxScore = 0;
+	let maxUsedIDs = [];
 	for (let i = 0; i < cases.length; i ++) {
 		let item = cases[i]
 		
@@ -5949,10 +5952,12 @@ function findMaxScore(cases, usedPairIDs) {
 		let newUsed = usedPairIDs;
 		newUsed.push(...item["pair"]);
 		let totalScore = item["score"];
-		totalScore += findMaxScore(cases.filter((_, index) => index !== i), newUsed);
+		maxResult = findMaxScore(cases.filter((_, index) => index !== i), newUsed);
+		totalScore += maxResult["score"];
 		if (totalScore > maxScore) {
 			maxScore = totalScore;
+			maxUsedIDs = [...item["pair"], ...maxResult["pair"]];
 		}
 	}
-	return maxScore;
+	return { "pair" : maxUsedIDs, "score" : maxScore}
 }
