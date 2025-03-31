@@ -4336,35 +4336,48 @@ function getOppositeDirection(thisDirection) {
 }
 
 function calculateElkTokenScoringB() {
-    let usedElkTokenIDs = [];
-    let elkFormationCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
     let elkScoringValues = { 
 		1: 2, 
 		2: 5, 
 		3: 9, 
 		4: 13
 	};
+	let formations = [
+		["NE"], ["E"], ["SE"],
+		["NE", "E"], ["E", "SE"],
+		["NW", "NE", "E"], ["NE", "E", "SE"], ["E", "SE", "SW"]
+	]
     let totalScore = 0;
+	let possibleCases = [];
 
     const tokenIDs = Object.keys(allPlacedTokens);
 
     for (const tokenID of tokenIDs) {
-        if (allPlacedTokens[tokenID] !== 'elk' || usedElkTokenIDs.includes(tokenID)) continue;
+        if (allPlacedTokens[tokenID] !== 'elk') continue;
 
-        let elkGroup = findElkFormation(tokenID);
-        let groupSize = elkGroup.length;
+		// Find all possible cases
+		possibleCases.push({
+			"pair": [tokenID],
+			"score": elkScoringValues[1]
+		})
 
-        if (groupSize >= 1 && groupSize <= 4) {
-            elkFormationCounts[groupSize]++;
-            totalScore += elkScoringValues[groupSize];
-            usedElkTokenIDs.push(...elkGroup);
-        }
+		for (let formation of formations) {
+			let tokens = formation
+				.map(direction => nextElkTokenInDirection(tokenID, direction))
+				.filter(item => item)
+			if (tokens.length == formation.length) {
+				possibleCases.push({
+					"pair": [tokenID, ...tokens],
+					"score": elkScoringValues[tokens.length + 1]
+				})
+			}
+		}
     }
 
+	totalScore = findMaxScore(possibleCases, [])
 
 	tokenScoring.elk.totalScore = totalScore;
 
-    console.log("Elk formations found:", elkFormationCounts);
     console.log("Total elk formation score:", totalScore);
 }
 
@@ -4512,85 +4525,6 @@ function calculateElkTokenScoringE() {
     tokenScoring.elk.totalScore = totalScore;
 
     console.log("Total elk formation score:", totalScore);
-}
-
-function findElkFormation(startID) {
-    let queue = [startID];
-    let visited = new Set();
-    let formation = [startID];
-
-    while (queue.length > 0) {
-        let currentToken = queue.shift();
-        let neighbours = neighbourTileIDs(currentToken);
-
-        for (let neighbour of neighbours) {
-            if (
-                allPlacedTokens.hasOwnProperty(neighbour) &&
-                allPlacedTokens[neighbour] === 'elk' &&
-                !visited.has(neighbour)
-            ) {
-                visited.add(neighbour);
-                queue.push(neighbour);
-                formation.push(neighbour);
-            }
-        }
-    }
-
-    // Validate formation shape
-    if (formation.length === 1 || formation.length === 2) return formation;
-    if (formation.length === 3 && isTriangle(formation)) return formation;
-    if (formation.length === 4 && isDiamond(formation)) return formation;
-
-    return []; // Default to single elk if no valid shape is found.
-}
-
-function isTriangle(elkGroup) {
-    if (elkGroup.length !== 3) return false;
-    let [a, b, c] = elkGroup;
-    
-    return (
-        isAdjacent(a, b) &&
-        isAdjacent(b, c) &&
-        isAdjacent(a, c) // Must form a closed triangle
-    );
-}
-
-function isDiamond(elkGroup) {
-    if (elkGroup.length !== 4) return false;
-    let [a, b, c, d] = elkGroup;
-
-    return (
-        isAdjacent(a, b) &&
-        isAdjacent(b, c) &&
-        isAdjacent(c, d) &&
-        isAdjacent(d, a) // Must form a closed diamond shape
-    );
-}
-
-function isRing(elkGroup) {
-    if (elkGroup.length > 6) return false;
-	for (let node of elkGroup) {
-		for (let i = 0; i < directions.length; i++){
-			let queue = [node];
-    		let visited = new Set([node]);
-			let currentIndex = i
-			while (queue.length > 0) {
-        		let currentToken = queue.shift();
-				let nextToken = nextElkTokenInDirection(currentToken, directions[currentIndex]);
-				if (nextToken && !visited.has(nextToken)) {
-					queue.push(nextToken);
-					visited.add(nextToken);
-					currentIndex = (currentIndex + 1) % directions.length;
-				}
-			}
-
-			if (visited.size == elkGroup.length) {
-				return true
-			}
-		}
-	}
-
-    return false;
 }
 
 function findRing(node) {
@@ -4744,22 +4678,6 @@ function calculateFoxTokenScoringC() {
 }
 
 function calculateFoxTokenScoringD() {
-	function findMaxScore(cases, usedPairIDs) {
-		let maxScore = 0;
-		for (let i = 0; i < cases.length; i ++) {
-			let item = cases[i]
-			if (usedPairIDs.includes(item["pair"][0]) || usedPairIDs.includes(item["pair"][1])) continue;
-			
-			let newUsed = usedPairIDs;
-			newUsed.push(...item["pair"]);
-			let totalScore = item["score"];
-			totalScore += findMaxScore(cases.filter((_, index) => index !== i), newUsed);
-			if (totalScore > maxScore) {
-				maxScore = totalScore;
-			}
-		}
-		return maxScore;
-	}
 	let foxScoringValues = {
 		'1': 5,
 		'2': 7,
@@ -5004,23 +4922,6 @@ function calculateHawkTokenScoringD() {
 		'2': 7,
 		'3': 9,
 	}
-	function findMaxScore(cases, usedPairIDs) {
-		let maxScore = 0;
-		for (let i = 0; i < cases.length; i ++) {
-			let item = cases[i]
-			if (usedPairIDs.includes(item["pair"][0]) || usedPairIDs.includes(item["pair"][1])) continue;
-			
-			let newUsed = usedPairIDs;
-			newUsed.push(...item["pair"]);
-			let totalScore = item["score"];
-			totalScore += findMaxScore(cases.filter((_, index) => index !== i), newUsed);
-			if (totalScore > maxScore) {
-				maxScore = totalScore;
-			}
-		}
-		return maxScore;
-	}
-
 	const tokenIDs = Object.keys(allPlacedTokens);
 
 	let potentialCases = [];
@@ -6036,4 +5937,22 @@ function indexOfMax(arr) {
     }
 
     return maxIndex;
+}
+
+function findMaxScore(cases, usedPairIDs) {
+	let maxScore = 0;
+	for (let i = 0; i < cases.length; i ++) {
+		let item = cases[i]
+		
+		if (item["pair"].find(id => usedPairIDs.includes(id))) continue;
+		
+		let newUsed = usedPairIDs;
+		newUsed.push(...item["pair"]);
+		let totalScore = item["score"];
+		totalScore += findMaxScore(cases.filter((_, index) => index !== i), newUsed);
+		if (totalScore > maxScore) {
+			maxScore = totalScore;
+		}
+	}
+	return maxScore;
 }
