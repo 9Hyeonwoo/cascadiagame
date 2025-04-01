@@ -4374,7 +4374,7 @@ function calculateElkTokenScoringB() {
 		}
     }
 
-	totalScore = findMaxScore(possibleCases.sort((a,b) => a["score"] > b["score"] ? -1 : 1), [])["score"]
+	totalScore = findMaxScore(possibleCases, [])["score"]
 
 	tokenScoring.elk.totalScore = totalScore;
 
@@ -5941,7 +5941,10 @@ function indexOfMax(arr) {
     return maxIndex;
 }
 
-function findMaxScore(cases, usedPairIDs) {
+function findMaxScore(cases, usedPairIDs, memo = new Map()) {
+	let key = [...usedPairIDs].sort().join(',');
+	if (memo.has(key)) return memo.get(key);
+
 	let maxScore = 0;
 	let maxUsedIDs = [];
 	for (let i = 0; i < cases.length; i ++) {
@@ -5949,15 +5952,19 @@ function findMaxScore(cases, usedPairIDs) {
 		
 		if (item["pair"].find(id => usedPairIDs.includes(id))) continue;
 		
-		let newUsed = usedPairIDs;
-		newUsed.push(...item["pair"]);
-		let totalScore = item["score"];
-		maxResult = findMaxScore(cases.filter((_, index) => index !== i), newUsed);
-		totalScore += maxResult["score"];
+		let newUsed = [...usedPairIDs, ...item["pair"]];
+		let remainingCases = cases.slice(0, i).concat(cases.slice(i + 1));
+
+		let maxResult = findMaxScore(remainingCases, newUsed, memo);
+		let totalScore = item["score"] + maxResult["score"];
+
 		if (totalScore > maxScore) {
 			maxScore = totalScore;
 			maxUsedIDs = [...item["pair"], ...maxResult["pair"]];
 		}
 	}
-	return { "pair" : maxUsedIDs, "score" : maxScore}
+
+	let result = { "pair": maxUsedIDs, "score": maxScore };
+	memo.set(key, result);
+	return result;
 }
